@@ -1,6 +1,6 @@
+import Image from 'next/image'
 import { Header } from '@/components/shared/Header'
 import { BookingForm } from '@/components/booking/BookingForm'
-import { Camera } from 'lucide-react'
 
 export const metadata = {
   title: 'Book a Shoot | Elijah Media',
@@ -17,7 +17,7 @@ export default function BookPage() {
           {/* Header */}
           <div className="text-center mb-12">
             <div className="flex justify-center mb-4">
-              <Camera className="h-10 w-10 text-neutral-400" />
+              <Image src="/logo.png" alt="Elijah Media" width={48} height={48} className="h-12 w-12 object-contain" />
             </div>
             <h1 className="text-3xl font-bold mb-4">Book Your Session</h1>
             <p className="text-neutral-400">

@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { 
-  Camera, 
   LayoutDashboard, 
   Images, 
   FolderOpen, 
@@ -28,8 +28,8 @@ export function AdminSidebar() {
     <aside className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-neutral-800">
-        <Link href="/admin" className="flex items-center gap-2 text-white">
-          <Camera className="w-7 h-7 text-green-500" />
+        <Link href="/admin" className="flex items-center gap-3 text-white">
+          <Image src="/logo.png" alt="Elijah Media" width={32} height={32} className="w-8 h-8 object-contain" />
           <span className="text-lg font-bold">Elijah Media</span>
         </Link>
         <p className="text-xs text-neutral-500 mt-1">Admin Panel</p>

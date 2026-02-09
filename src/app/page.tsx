@@ -193,7 +193,7 @@ export default async function HomePage() {
       <footer className="py-8 px-4 sm:px-6 lg:px-8 border-t border-neutral-800">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Camera className="h-5 w-5 text-neutral-500" />
+            <Image src="/logo.png" alt="Elijah Media" width={20} height={20} className="h-5 w-5 object-contain opacity-50" />
             <span className="text-neutral-500">© {new Date().getFullYear()} Elijah Media</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-neutral-500">

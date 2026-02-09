@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Camera, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -188,7 +189,7 @@ export default async function GalleryStylePage({ params }: PageProps) {
                 href="/book"
                 className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
               >
-                <Camera className="w-5 h-5" />
+                <Image src="/logo.png" alt="" width={20} height={20} className="w-5 h-5 object-contain" />
                 Book a Session
               </Link>
               <Link

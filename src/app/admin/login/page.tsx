@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { Camera, Loader2, Mail, Lock, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
+import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function AdminLoginPage() {
@@ -48,8 +49,8 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 text-white">
-            <Camera className="w-8 h-8" />
+          <Link href="/" className="inline-flex items-center gap-3 text-white">
+            <Image src="/logo.png" alt="Elijah Media" width={40} height={40} className="w-10 h-10 object-contain" />
             <span className="text-2xl font-bold">Elijah Media</span>
           </Link>
           <p className="text-neutral-400 mt-2">Admin Portal</p>
