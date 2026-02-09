@@ -203,29 +203,25 @@ export async function POST(request: NextRequest) {
               name: `${booking_type === 'event' ? 'Event' : 'Portrait'} Session - ${client_name}`,
               description: `Booking Request from Portfolio Website
 
-📅 Date: ${booking_date}
-⏰ Time: ${start_time} - ${end_time}
-📍 Location: ${location_type === 'provided' ? location_manual : 'Flexible / TBD'}
-👥 Type: ${booking_type === 'event' ? `Event (${num_people || 1} people)` : 'Personal/Portrait'}
-
-📧 Email: ${client_email}
-📱 Phone: ${client_phone || 'Not provided'}
-
-📝 Special Requests:
-${special_requests || 'None'}`,
+� Email: ${client_email}
+📱 Phone: ${client_phone || 'Not provided'}`,
               amount: dealAmount,
               status: 'open',
               probability: 50,
               close_date: booking_date,
+              // Photographer-specific booking fields
+              booking_type: booking_type === 'event' ? 'event' : 'personal',
+              num_people: num_people || null,
+              event_date: booking_date,
+              event_start_time: start_time,
+              event_end_time: end_time,
+              location_type: location_type || null,
+              location: location_type === 'provided' ? location_manual : null,
+              special_requests: special_requests || null,
+              // Legacy fields for backwards compatibility
               custom_data: JSON.stringify({
                 booking_id: booking.id,
-                booking_type,
-                num_people: num_people || 1,
-                location_type,
-                location: location_type === 'provided' ? location_manual : null,
-                start_time,
-                end_time,
-                special_requests,
+                source: 'elijah_media_portfolio',
               }),
               metadata: JSON.stringify({
                 source: 'elijah_media_portfolio',
