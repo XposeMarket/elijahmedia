@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
   
   // Build calendar data with day statuses
   const calendarData: Record<string, {
-    status: 'available' | 'booked' | 'off'
+    day_status: 'available' | 'booked' | 'off' | 'no_more_bookings'
     bookingsCount: number
     timeSlots: { startTime: string; endTime: string }[]
   }> = {}
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
   for (let day = 1; day <= lastDay.getDate(); day++) {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     calendarData[dateStr] = {
-      status: 'available',
+      day_status: 'available',
       bookingsCount: 0,
       timeSlots: [],
     }
@@ -83,24 +83,25 @@ export async function GET(request: NextRequest) {
   if (calendarDays) {
     for (const day of calendarDays) {
       if (calendarData[day.date]) {
-        calendarData[day.date].status = day.day_status as 'available' | 'booked' | 'off'
+        calendarData[day.date].day_status = day.day_status as 'available' | 'booked' | 'off' | 'no_more_bookings'
       }
     }
   }
   
-  // Apply booking counts
+  // Apply booking counts (only count approved bookings for blocking)
   if (bookings) {
     for (const booking of bookings) {
       if (calendarData[booking.booking_date]) {
-        calendarData[booking.booking_date].bookingsCount++
-        calendarData[booking.booking_date].timeSlots.push({
-          startTime: booking.start_time,
-          endTime: booking.end_time,
-        })
-        
-        // If 2 or more bookings, mark as booked (max 2 per day)
-        if (calendarData[booking.booking_date].bookingsCount >= 2) {
-          calendarData[booking.booking_date].status = 'booked'
+        if (booking.approval_status === 'approved') {
+          calendarData[booking.booking_date].bookingsCount++
+          calendarData[booking.booking_date].timeSlots.push({
+            startTime: booking.start_time,
+            endTime: booking.end_time,
+          })
+          // If 3 or more approved bookings, mark as booked (max 3 per day)
+          if (calendarData[booking.booking_date].bookingsCount >= 3) {
+            calendarData[booking.booking_date].day_status = 'booked'
+          }
         }
       }
     }
@@ -110,6 +111,7 @@ export async function GET(request: NextRequest) {
     month: monthParam,
     startDate,
     endDate,
-    days: calendarData,
+    dates: calendarData,
+    bookings: bookings || [],
   })
 }

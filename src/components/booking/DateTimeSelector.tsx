@@ -55,6 +55,13 @@ export function DateTimeSelector({
     fetchCalendarData()
   }, [fetchCalendarData])
 
+  // Listen for external calendar updates (admin changes) and re-fetch
+  useEffect(() => {
+    const handler = () => fetchCalendarData()
+    window.addEventListener('calendar:updated', handler)
+    return () => window.removeEventListener('calendar:updated', handler)
+  }, [fetchCalendarData])
+
   // When date changes, fetch available time slots
   useEffect(() => {
     if (!selectedDate) {
@@ -93,30 +100,25 @@ export function DateTimeSelector({
 
   const getDayStatus = (date: Date): 'available' | 'off' | 'booked' | 'past' => {
     const dateStr = format(date, 'yyyy-MM-dd')
-    
     // Past dates
     if (isBefore(date, startOfDay(new Date()))) {
       return 'past'
     }
-    
     // Check calendar status
     const calendarDay = calendarData[dateStr]
     if (calendarDay?.day_status === 'off') {
       return 'off'
     }
-    
-    // Check if fully booked (2 shoots)
+    // Only count approved bookings for blocking
     const dateBookings = bookingsData.filter(
-      b => b.booking_date === dateStr && b.approval_status !== 'denied'
+      b => b.booking_date === dateStr && b.approval_status === 'approved'
     )
-    if (dateBookings.length >= 2) {
+    if (dateBookings.length >= 3) {
       return 'booked'
     }
-    
     if (calendarDay?.day_status === 'no_more_bookings' && dateBookings.length > 0) {
       return 'booked'
     }
-    
     return 'available'
   }
 

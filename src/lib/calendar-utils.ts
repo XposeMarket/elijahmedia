@@ -21,7 +21,7 @@ export interface AvailabilityResult {
 }
 
 // Business rules
-const MAX_SHOOTS_PER_DAY = 2
+const MAX_SHOOTS_PER_DAY = 3
 const MIN_HOURS_BETWEEN_SHOOTS = 3
 const DEFAULT_SHOOT_DURATION_HOURS = 2
 
@@ -29,7 +29,19 @@ const DEFAULT_SHOOT_DURATION_HOURS = 2
  * Parse time string "HH:MM" to Date object for comparison
  */
 function parseTime(dateStr: string, timeStr: string): Date {
-  return parseISO(`${dateStr}T${timeStr}:00`)
+  // Accept time strings in either "HH:MM" or "HH:MM:SS" formats
+  let time = timeStr
+  if (/^\d{2}:\d{2}$/.test(timeStr)) {
+    time = `${timeStr}:00`
+  } else if (/^\d{2}:\d{2}:\d{2}$/.test(timeStr)) {
+    time = timeStr
+  } else {
+    // Fallback: strip fractional seconds or unexpected parts
+    const match = timeStr.match(/^(\d{2}:\d{2})(:?\d{2})?/) 
+    time = match ? (match[2] ? `${match[1]}:${match[2].replace(':','')}` : `${match[1]}:00`) : '00:00:00'
+  }
+
+  return parseISO(`${dateStr}T${time}`)
 }
 
 /**
@@ -47,8 +59,8 @@ export function checkTimeConflicts(
   const conflicts: Booking[] = []
   
   for (const booking of existingBookings) {
-    // Skip denied bookings
-    if (booking.approval_status === 'denied') continue
+    // Only consider approved bookings for blocking
+    if (booking.approval_status !== 'approved') continue
     
     const existingStart = parseTime(booking.booking_date, booking.start_time)
     const existingEnd = parseTime(booking.booking_date, booking.end_time)
@@ -59,19 +71,20 @@ export function checkTimeConflicts(
       continue
     }
     
-    // Check 3-hour spacing rule
-    const existingEndPlus3Hours = addHours(existingEnd, MIN_HOURS_BETWEEN_SHOOTS)
-    const newStartMinus3Hours = addHours(newStart, -MIN_HOURS_BETWEEN_SHOOTS)
-    
-    // If new booking starts before existing ends + 3 hours
-    if (isBefore(newStart, existingEndPlus3Hours) && isAfter(newStart, existingEnd)) {
+    // Check MIN_HOURS_BETWEEN_SHOOTS spacing rule (both before and after existing booking)
+    const existingEndPlusBuffer = addHours(existingEnd, MIN_HOURS_BETWEEN_SHOOTS)
+    const existingStartMinusBuffer = addHours(existingStart, -MIN_HOURS_BETWEEN_SHOOTS)
+
+    // If new booking starts within buffer after existing booking ends
+    if (isBefore(newStart, existingEndPlusBuffer) && isAfter(newStart, existingEnd)) {
       conflicts.push(booking)
       continue
     }
-    
-    // If new booking ends after existing starts - 3 hours
-    if (isAfter(newEnd, newStartMinus3Hours) && isBefore(newEnd, existingStart)) {
+
+    // If new booking ends within buffer before existing booking starts
+    if (isAfter(newEnd, existingStartMinusBuffer) && isBefore(newEnd, existingStart)) {
       conflicts.push(booking)
+      continue
     }
   }
   
@@ -90,8 +103,8 @@ export function checkTimeConflicts(
  * Check if a date has reached max bookings
  */
 export function isDateFullyBooked(existingBookings: Booking[]): boolean {
-  const activeBookings = existingBookings.filter(b => b.approval_status !== 'denied')
-  return activeBookings.length >= MAX_SHOOTS_PER_DAY
+  const approvedBookings = existingBookings.filter(b => b.approval_status === 'approved')
+  return approvedBookings.length >= MAX_SHOOTS_PER_DAY
 }
 
 /**
@@ -107,8 +120,8 @@ export function getAvailableTimeSlots(
     return []
   }
   
-  // If day is marked as no more bookings and has bookings, no slots
-  if (calendarDay?.day_status === 'no_more_bookings' && existingBookings.length > 0) {
+  // If day is marked as no more bookings and has approved bookings, no slots
+  if (calendarDay?.day_status === 'no_more_bookings' && existingBookings.some(b => b.approval_status === 'approved')) {
     return []
   }
   
@@ -169,7 +182,7 @@ export async function checkAvailability(
   
   // Check if day is marked no more bookings
   if (calendarDay?.day_status === 'no_more_bookings') {
-    const activeBookings = existingBookings.filter(b => b.approval_status !== 'denied')
+    const activeBookings = existingBookings.filter(b => b.approval_status === 'approved')
     if (activeBookings.length > 0) {
       return {
         available: false,

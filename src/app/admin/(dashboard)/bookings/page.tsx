@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Calendar, Clock, Check, X, Mail, Phone } from 'lucide-react'
 import { BookingActions } from '@/components/admin/BookingActions'
+import AvailabilityModal from '@/components/admin/AvailabilityModal'
 
 interface PageProps {
   searchParams: Promise<{ status?: string }>
@@ -44,9 +45,15 @@ export default async function AdminBookingsPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Bookings</h1>
-        <p className="text-neutral-400 mt-1">Manage booking requests and approvals</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Bookings</h1>
+          <p className="text-neutral-400 mt-1">Manage booking requests and approvals</p>
+        </div>
+        <div>
+          {/* Availability modal button */}
+          <AvailabilityModal />
+        </div>
       </div>
 
       {/* Filters */}
